@@ -18,10 +18,13 @@ import {
   Spacer,
   Text,
   Theme,
+  ThemeableStack,
+  TooltipSimple,
   XGroup,
   XStack,
   XStackProps,
   YStack,
+  styled,
 } from 'tamagui'
 
 import { BenchmarkChart } from './BenchmarkChart'
@@ -45,7 +48,71 @@ import { SubTitle } from './SubTitle'
 import { UL } from './UL'
 import { unwrapText } from './unwrapText'
 
+const TableFrame = styled(ThemeableStack, {
+  bordered: true,
+  br: '$4',
+  ov: 'hidden',
+  my: '$4',
+})
+
+const Table = ({ heading, children, ...props }) => {
+  return (
+    <TableFrame {...props}>
+      {!!heading && (
+        <TableCell bc="$color1" fow="700">
+          {heading}
+        </TableCell>
+      )}
+      <XStack>{children}</XStack>
+    </TableFrame>
+  )
+}
+
+const TableCell = styled(Paragraph, {
+  bbw: 1,
+  bbc: '$borderColor',
+  fd: 'row',
+  ai: 'center',
+  pos: 'relative',
+  jc: 'center',
+  ta: 'center',
+  h: '$4',
+  p: '$2',
+  size: '$5',
+
+  variants: {
+    head: {
+      true: {
+        bc: '$color1',
+        fow: '600',
+      },
+    },
+    highlight: {
+      true: {
+        bc: '$yellow2',
+      },
+    },
+  },
+})
+
+const TableCol = styled(ThemeableStack, {
+  brw: 1,
+  brc: '$borderColor',
+  f: 1,
+  fd: 'column',
+})
+
+const TableHighlight = styled(YStack, {
+  fullscreen: true,
+  bc: '$yellow1',
+})
+
 export const components = {
+  Table,
+  TableCell,
+  TableHighlight,
+  TableCol,
+
   Spacer,
   ExampleAnimations,
   ScrollView,
@@ -60,6 +127,7 @@ export const components = {
   HeroContainer,
   BenchmarkChartNative,
   BenchmarkChartWeb,
+  TooltipSimple,
 
   ...Demos,
 
@@ -71,7 +139,7 @@ export const components = {
 
   TLDR: (props) => {
     return (
-      <YStack my="$4" px="$6" py="$2" br="$6" bc="$color1" bw={1} boc="$borderColor" {...props} />
+      <YStack my="$3" px="$6" py="$2" br="$6" bc="$color1" bw={1} boc="$borderColor" {...props} />
     )
   },
 
@@ -226,7 +294,7 @@ export const components = {
       ...rest
     } = props
     if (!className) {
-      return <CodeInline>{children}</CodeInline>
+      return <CodeInline>{unwrapText(children)}</CodeInline>
     }
     return (
       <YStack mt="$3">

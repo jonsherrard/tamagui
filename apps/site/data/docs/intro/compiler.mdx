@@ -1,27 +1,217 @@
 ---
-title: Compiler
-description: Faster frontends with ½ the code
+title: Fast, faster
+description: Break out of the frontend trilemma.
 ---
 
 <TLDR>
 
-The Tamagui compiler is good for 5-15% better performance on Native, but anywhere from 50-300% better performance on web, without hand-optimization.
+**TLDR**: The Tamagui compiler makes sharing more code between native and web possible. It speeds up apps 2-10x on the web, and ~1.2x on native.
 
 </TLDR>
 
 <IntroParagraph>
-  React Native has a good motto:{' '}
-  <span style={{ color: 'var(--yellow10)' }}>learn once, write anywhere</span>. It's an admission
-  that your app only feels good as much as it uses the native platform primitives.
+  The React Native motto{' '}
+  <span style={{ color: 'var(--yellow10)' }}>learn once, write anywhere</span> belies a truth: apps
+  only feel as good as they target The Platform™ they deploy to.
 </IntroParagraph>
 
+At the same time, React makes sharing more code while retaining native feel and performance possible, moreso now than ever. But it doesn't really change the following fundamental _frontend_ decision that anyone building an app has:
+
+<Table heading="Choose one">
+  <TableCol>
+    <TableCell head></TableCell>
+    <TableCell>1</TableCell>
+    <TableCell>2</TableCell>
+    <TableCell>3</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell head>Strategy</TableCell>
+    <TableCell>Universal</TableCell>
+    <TableCell>MVP</TableCell>
+    <TableCell>$$$</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell head>Native + Web</TableCell>
+    <TableCell>✅</TableCell>
+    <TableCell>❌</TableCell>
+    <TableCell>✅</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell head>Code Sharing</TableCell>
+    <TableCell>\> 75%</TableCell>
+    <TableCell>0%</TableCell>
+    <TableCell>\< 50%</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell head>Ship Fast</TableCell>
+    <TableCell>✅</TableCell>
+    <TableCell>✅</TableCell>
+    <TableCell>❌</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell head>Feels native</TableCell>
+    <TableCell>❌</TableCell>
+    <TableCell>✅</TableCell>
+    <TableCell>✅</TableCell>
+  </TableCol>
+</Table>
+
+The `Feels Native` column is the one to pay attention to here. What's really happening here is what I've been thinking of as **the frontend trilemma**. Basically, choose two of three:
+
+<Table heading="Choose two">
+  <TableCol>
+    <TableCell>Multi-platform</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell>Single codebase</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell>Feels native</TableCell>
+  </TableCol>
+</Table>
+
+This corollary is as old as time and has applied way before React ever came along, but it does feel like we're making slow but real progress towards it. This article gives a little history of that, goes into why I think we can unlock another 20-40%, and then explains a bit on how the Tamagui compiler works to do that.
+
+Before we do that, I like the trilemma as a Venn diagram only because it reveals a hidden center that I think Tamagui is helping make more possible:
+
 <YStack maw={650} als="center">
-  ![The Code Sharing Trilemma](/trilemma.svg)
+  ![The Frontend Trilemma: Choose two of DX, UX, and multi-platform (or run out of
+  time).](/trilemma.svg)
 </YStack>
 
-Most people choose two and get on with it. They may just focus on web or native to start. Or maybe they have a lot of money, so they just write everything twice.
+I think there's a bit of a secret. In stages, since React Native was released, there's been an ever increasing percent of your frontend that you can actually share between Native and Web - without sacrificing native feel. It's not "write once, run anywhere" - and may never be - but you could track the progress something like this:
 
-If you do need both a native and web app, you can `npm install` one of the many React Native + Web UI kits... but in exchange, you'll get ~70% off Lighthouse scores, main-thread jank, and neverending stress over your performance budget.
+<YStack maw={650} als="center">
+  ![Sharing code between web and native without sacrificing native feel has gone way up with the
+  release of React Native, and later with the release of React Native Web](/code-sharing.svg)
+</YStack>
+
+With React Native, you could share many things: logical code, helper functions, hooks (once they came out) and very simple views. Then, when React Native Web came out, you could now share a lot more: a portion of your leaf components, for example.
+
+The graph above is purposefully rough - I'm not here to argue semantics. It trends up in between because of the great work of many library authors in the community as they've built solutions on top of React Native + Web. But in general I think it's right.
+
+Yet, even with React Native Web, in the best cases it's simply impossible to share more than, say, 35% of your frontend without sacrificing look/feel. It's a big win, but it what it means for many features you're still ultimately writing them twice.
+
+So, the question is:
+
+<IntroParagraph style={{ color: 'var(--yellow10)' }}>
+  How high can that % ultimately be?
+</IntroParagraph>
+
+<IntroParagraph style={{ color: 'var(--yellow10)' }}>
+  And, what's blocking us from getting there?
+</IntroParagraph>
+
+I can at least answer _some_ of that. I think there's a clear path to moving from somewhere around 40%, to closer to 80% without anything especially fancy.
+
+What's blocking us from doing that today is <span style={{ color: 'var(--yellow10)' }}>browsers</span>. Or rather, <span style={{ color: 'var(--yellow10)' }}>CSS</span>. Erm, well, really it's a lot of things, but mostly at least for the next 40% I'd say it's <span style={{ color: 'var(--yellow10)' }}>that we aren't using The Platform™</span>.
+
+### Three things holding us back
+
+For all the great things its done, there are four more obvious things React Native Web needs to do that that would each individually have a big effect on sharing code. Funnily enough - the last three would also all be big DX wins for regular old React Native. They are:
+
+- Don't serve styles in Javascript.
+- Use CSS media queries for responsivity.
+- Use CSS variables for themes.
+- Use CSS psuedo attributes for interactive styles.
+
+React Native Web makes you write your styles in Javascript, and it only supports the limited React Native `StyleSheet` API. Unfortunately, that API is, well, limited - it has no concept of responsive styles (media queries), themes (CSS variables), or [pseudo styling](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes).
+
+This means that every style you write is part of your Javascript Bundle. Even worse, because responsive styling is absolutely essential to sharing code, and is basically useful on almost every components besides a few of very leaf-most, you end up forking your code much earlier than you'd typically need to.
+
+And then of course there's authoring experience. Want dark and light mode? Or just a nice style when a user presses or hovers on a button? Get ready for about 10 lines of code for what usually took 1 in CSS (including hooks, memory-hungry objects in render functions, and more Javascript _right the most performance critical parts of your app_).
+
+The effect of the combination of all these factors is hard to understate: it's absolutely devastating for web performance. But it's also devastating for code quality and shipping time, even on Native.
+
+And these downsides really work together for demoralization (for the lesser funded of us, at least): the feeling of writing more code, more cumbersomely and brittly, and in exchange getting a much worse performance/feel, is sad. But if you can't afford to develop your app twice, it's either that, or nothing.
+
+### How Tamagui fixes all that stuff
+
+The Tamagui compiler starts with the essentials: **it extracts all your styles to CSS**. This alone leads to 30% smaller bundles and very large gains in Lighthouse scores and general responsivity.
+
+It also gives us <span style={{ color: 'var(--yellow10)' }}>three features today that all optimize completely to CSS on the web</span>: **responsive styles (media queries)**, **theme values (CSS variables)**, **interactive styling (pseudo styles)**. Each of these features were designed hand-in-hand with the compiler to extract on the web to CSS, leaving behind nothing at all but simple render functions that concat a few `className` strings together.
+
+Here's a simple example of how it works:
+
+```tsx
+import { Paragraph, YStack } from 'tamagui'
+
+const App = (props) => (
+  <YStack
+    padding={props.big ? '$5' : '$3'}
+    {...(props.colored && {
+      backgroundColor: 'green',
+    })}
+  >
+    <Paragraph size="$2">Lorem ipsum dolor.</Paragraph>
+  </YStack>
+)
+```
+
+Which the compiler will take and output as:
+
+```tsx
+import { Paragraph, YStack, concatClassName } from 'tamagui'
+
+const App = (props) => (
+  <div
+    className={concatClassName(
+      _cn + (props.big ? _cn2 : _cn3) + (' ' + (props.colored ? _cn4 : ' '))
+    )}
+  >
+    <span className={_cn5}>Lorem ipsum dolor.</span>
+  </div>
+)
+
+const _cn5 = ' _c-scmqyp _d-1471scf _ff-xeweqh _fs-7uzi8p _lh-1l6ykvy'
+const _cn4 = '  _bc-1542mo4'
+const _cn3 = ' _pb_-12bic3x _pl_-7ztw5e _pr-g6vdx7 _pt-1vq430g'
+const _cn2 = ' _pb-z3qxl0 _pl-14km6ah _pr-1qpq1qc _pt-1medp4i'
+const _cn = ' _d-6koalj _fd-eqz5dr _fls-1q142lx '
+```
+
+It also does **One More Thing™**:
+
+### One More Thing
+
+tree-flattening. Using partial evaluation, it can take even largely dynamic code like this:
+
+On native, the Tamagui compiler optimizes less, but still reduces render function cost by extracting as much style logic as possible, and flattens your view tree leading to lower memory pressure.
+
+<Table>
+  <TableCol>
+    <TableCell head></TableCell>
+    <TableCell ta="right">
+      <b>Ship fast</b>
+    </TableCell>
+    <TableCell ta="right">Ship fast (less quality)</TableCell>
+    <TableCell ta="right">Ship fast (less platforms)</TableCell>
+    <TableCell ta="right">Ship slow</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell head>Codebases</TableCell>
+    <TableCell>
+      <b>~1</b>
+    </TableCell>
+    <TableCell>1</TableCell>
+    <TableCell>1</TableCell>
+    <TableCell>2</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell head>Native + Web</TableCell>
+    <TableCell>✅</TableCell>
+    <TableCell>✅</TableCell>
+    <TableCell>❌</TableCell>
+    <TableCell>✅</TableCell>
+  </TableCol>
+  <TableCol>
+    <TableCell head>Feels native</TableCell>
+    <TableCell>✅</TableCell>
+    <TableCell>❌</TableCell>
+    <TableCell>✅</TableCell>
+    <TableCell>✅</TableCell>
+  </TableCol>
+</Table>
 
 ##### Web
 
