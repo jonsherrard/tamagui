@@ -34,6 +34,8 @@ export function HomeScreen() {
           <Paragraph>Welcome to the Tamagui Kitchen Sink!</Paragraph>
         </YStack>
 
+        {/* <Button pressStyle={{ backgroundColor: 'red' }}>testing</Button> */}
+
         {/* <Theme name="blue">
           <Input placeholder="Search..." />
         </Theme> */}
