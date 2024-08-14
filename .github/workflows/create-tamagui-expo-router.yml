@@ -25,6 +25,9 @@ jobs:
           cmd: install # will run `yarn install` command
 
       - name: Create Tamagui project
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: false
+          COREPACK_ENABLE_STRICT: false
         run: yarn dlx create-tamagui@latest --template expo-router my-tamagui-app
 
       - name: Start Expo project and wait for Metro bundler
