@@ -47,7 +47,7 @@ jobs:
           }
 
           # Wait for Metro bundler or failure
-          TIMEOUT=30  # 30 seconds timeout
+          TIMEOUT=30  # 100 seconds timeout
           COUNTER=0
           while [ $COUNTER -lt $TIMEOUT ]; do
             if metro_ready; then
