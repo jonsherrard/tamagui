@@ -19,11 +19,6 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Install global dependencies
-        run: |
-          corepack enable
-          corepack prepare yarn@stable --activate
-
       - name: Create Tamagui project
         run: npx create-tamagui@latest --template expo-router my-tamagui-app
 
