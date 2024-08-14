@@ -155,5 +155,6 @@
     "ultra-runner": "^3.10.5",
     "update-ts-references": "^3.3.0",
     "zx": "^7.2.3"
-  }
+  },
+  "packageManager": "yarn@4.0.2"
 }
