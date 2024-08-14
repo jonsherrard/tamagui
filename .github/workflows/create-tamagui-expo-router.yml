@@ -38,7 +38,7 @@ jobs:
 
           # Function to check if Metro bundler is ready
           metro_ready() {
-            grep -q "Metro waiting on exp://" startup.log
+            grep -q "Logs for your project will appear below." startup.log
           }
 
           # Function to check if yarn start failed
