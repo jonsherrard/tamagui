@@ -15,16 +15,17 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
 
       - name: Create Tamagui project
         run: npx create-tamagui@latest --template expo-router my-tamagui-app
 
-      - name: Install project dependencies
-        working-directory: ./my-tamagui-app
-        run: yarn install --immutable
+      - name: Run install
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install # will run `yarn install` command
 
       - name: Start Expo project and wait for Metro bundler
         working-directory: ./my-tamagui-app
