@@ -20,8 +20,9 @@ jobs:
           node-version: "20"
 
       - name: Create Tamagui project
-        run: |
-          node code/core/create-tamagui/src/index.ts --template expo-router my-tamagui-app
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: dlx create-tamagui@latest --template expo-router my-tamagui-app
         env:
           IS_TEST: true
           YARN_ENABLE_IMMUTABLE_INSTALLS: false
