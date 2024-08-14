@@ -9,6 +9,7 @@ on:
 
 jobs:
   test-setup:
+    name: Test create-tamagui expo-router
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +31,7 @@ jobs:
 
       - name: Install project dependencies
         working-directory: ./my-tamagui-app
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       - name: Start Expo project and wait for Metro bundler
         working-directory: ./my-tamagui-app
