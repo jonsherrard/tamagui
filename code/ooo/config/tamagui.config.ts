@@ -19,7 +19,8 @@ export const cssTransitions = {
   slow: 'ease-in 500ms',
   quick: `${smoothBezier} 400ms`,
   quicker: `${smoothBezier} 300ms`,
-  quickest: `${smoothBezier} 200ms`,
+  // quickest: `${smoothBezier} 200ms`,
+  quickest: 'ease-in 200ms',
   tooltip: 'ease-in 400ms',
 }
 

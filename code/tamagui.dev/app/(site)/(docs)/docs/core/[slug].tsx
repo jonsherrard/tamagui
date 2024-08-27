@@ -10,6 +10,8 @@ import { getAllFrontmatter, getMDXBySlug } from '@tamagui/mdx'
 import { components } from '~/features/mdx/MDXComponents'
 import { HeadInfo } from '~/components/HeadInfo'
 import { getOgUrl } from '~/features/site/getOgUrl'
+import { Spinner } from 'tamagui'
+import React from 'react'
 
 export async function generateStaticParams() {
   const frontmatters = getAllFrontmatter('data/docs/core')
@@ -51,7 +53,9 @@ export default function DocCorePage() {
       <HomeH1>{nbspLastWord(frontmatter.title)}</HomeH1>
       <SubTitle>{nbspLastWord(frontmatter.description || '')}</SubTitle>
       <ThemeTint>
-        <Component components={components as any} />
+        <React.Suspense fallback={<Spinner width={20} size="small" />}>
+          <Component components={components as any} />
+        </React.Suspense>
       </ThemeTint>
       <DocsQuickNav />
     </>
