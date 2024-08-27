@@ -14,11 +14,27 @@ import photo3 from '../../public/photo3.jpg'
 export const images = [photo1, photo2, photo3].map((x) => x.src || x)
 
 const GalleryItem = styled(YStack, {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
+  zIndex: 1,
+  x: 0,
+  opacity: 1,
+  fullscreen: true,
+
+  variants: {
+    // 1 = right, 0 = nowhere, -1 = left
+    going: {
+      ':number': (going) => ({
+        enterStyle: {
+          x: going > 0 ? 1000 : -1000,
+          opacity: 0,
+        },
+        exitStyle: {
+          zIndex: 0,
+          x: going < 0 ? 1000 : -1000,
+          opacity: 0,
+        },
+      }),
+    },
+  } as const,
 })
 
 const wrap = (min: number, max: number, v: number) => {
@@ -27,12 +43,12 @@ const wrap = (min: number, max: number, v: number) => {
 }
 
 export function AnimationsPresenceDemo() {
-  const [page, setPage] = React.useState(0)
+  const [[page, going], setPage] = React.useState([0, 0])
 
   const imageIndex = wrap(0, images.length, page)
-  const paginate = React.useCallback((newDirection: number) => {
-    setPage((prevPage) => prevPage + newDirection)
-  }, [])
+  const paginate = (going: number) => {
+    setPage([page + going, going])
+  }
 
   return (
     <XStack
@@ -43,15 +59,8 @@ export function AnimationsPresenceDemo() {
       width="100%"
       alignItems="center"
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <GalleryItem
-          key={page}
-          animation="quick"
-          x={0}
-          opacity={1}
-          enterStyle={{ x: page > imageIndex ? '100%' : '-100%', opacity: 0 }}
-          exitStyle={{ x: page > imageIndex ? '-100%' : '100%', opacity: 0 }}
-        >
+      <AnimatePresence initial={false} custom={{ going }}>
+        <GalleryItem key={page} animation="slow" going={going}>
           <Image source={{ uri: images[imageIndex], width: 820, height: 300 }} />
         </GalleryItem>
       </AnimatePresence>
@@ -65,7 +74,7 @@ export function AnimationsPresenceDemo() {
         circular
         elevate
         onPress={() => paginate(-1)}
-        zIndex={100}
+        zi={100}
       />
 
       <Button
@@ -77,7 +86,7 @@ export function AnimationsPresenceDemo() {
         circular
         elevate
         onPress={() => paginate(1)}
-        zIndex={100}
+        zi={100}
       />
     </XStack>
   )
