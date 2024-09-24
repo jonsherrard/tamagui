@@ -69,6 +69,10 @@ const customConfig = {
 
 const tamaguiConfig = createTamagui(customConfig)
 
-export type TamaguiConfig = typeof tamaguiConfig
+// TypeScript types across all Tamagui APIs
+type Conf = typeof tamaguiConfig
+declare module '@tamagui/core' {
+  interface TamaguiCustomConfig extends Conf {}
+}
 
 export default tamaguiConfig
