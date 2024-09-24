@@ -10,7 +10,8 @@
     "typecheck": "tsc",
     "prod": "npm run build && npm run start",
     "lint": "biome check ./app",
-    "lint:fix": "biome check ./app --fix"
+    "lint:fix": "biome check ./app --fix",
+    "test": "vitest"
   },
   "dependencies": {
     "@remix-run/node": "^2.12.1",
@@ -42,7 +43,8 @@
     "tailwindcss": "^3.4.4",
     "typescript": "^5.1.6",
     "vite": "^5.1.0",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite-tsconfig-paths": "^4.2.1",
+    "vitest": "^2.1.1"
   },
   "engines": {
     "node": ">=20.0.0"
